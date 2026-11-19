@@ -1,4 +1,4 @@
-# IntelliPlace: AI-Powered Answer Sheet Evaluation System (v2.0)
+# Edu-vision: AI-Powered Answer Sheet Evaluation System (v2.0)
 
 Automated full-stack evaluation platform for handwritten student answer sheets using OCR, SBERT semantic embedding analysis, DeBERTa NLI contradiction gating, and rubric matching.
 
