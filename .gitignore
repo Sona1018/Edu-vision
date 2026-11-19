@@ -1,0 +1,69 @@
+# =========================
+# Virtual Environments
+# =========================
+venv/
+.env/
+
+# =========================
+# Python Cache
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# VS Code / IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Logs
+# =========================
+*.log
+debug-5004af.log
+
+# =========================
+# Reports / Temporary Files
+# =========================
+report.md
+
+# =========================
+# Documentation Drafts
+# =========================
+docs/
+
+# =========================
+# Raw Dataset Building Files
+# =========================
+data/
+
+# =========================
+# Trained Models / Artifacts
+# =========================
+artifacts/
+*.joblib
+*.pth
+*.pt
+
+# =========================
+# Generated CSVs
+# =========================
+dataset/meta_features.csv
+dataset/meta_predictions.csv
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Node & Storage
+# =========================
+node_modules/
+**/node_modules/
+storage/uploads/
+storage/page_images/
+storage/reports/

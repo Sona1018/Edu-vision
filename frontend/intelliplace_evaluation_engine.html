@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntelliPlace Evaluation Engine</title>
+  <style>
+    :root {
+      --font-sans: Inter, "Segoe UI", Arial, sans-serif;
+      --color-text-primary: #161616;
+      --color-text-secondary: #5f6368;
+      --color-text-tertiary: #8a8f98;
+      --color-text-info: #0c447c;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f7f8fb;
+      --color-background-tertiary: #f3f4f8;
+      --color-background-info: #b5d4f4;
+      --color-border-secondary: #d9dde5;
+      --color-border-tertiary: #e6e9ef;
+      --border-radius-md: 10px;
+      --border-radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      color: var(--color-text-primary);
+      background: var(--color-background-tertiary);
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      background: var(--color-background-primary);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: #3C3489;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .topbar-name {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.2px;
+    }
+
+    .topbar-tag {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      background: var(--color-background-secondary);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: var(--border-radius-md);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+    }
+
+    .nav-btn.active {
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .nav-btn:hover {
+      background: var(--color-background-secondary);
+    }
+
+    .topbar-user {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--color-background-info);
+      color: var(--color-text-info);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Layout */
+    .main {
+      display: flex;
+      flex: 1;
+    }
+
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      border-right: 0.5px solid var(--color-border-tertiary);
+      background: var(--color-background-primary);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .content {
+      flex: 1;
+      padding: 28px;
+      background: var(--color-background-tertiary);
+      overflow-y: auto;
+    }
+
+    /* Sidebar */
+    .sidebar-section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: var(--border-radius-md);
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+
+    .sidebar-item.active {
+      background: #EEEDFE;
+      color: #3C3489;
+      font-weight: 500;
+    }
+
+    .sidebar-item:hover:not(.active) {
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+    }
+
+    .sidebar-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.5;
+    }
+
+    .sidebar-item.active .sidebar-dot {
+      background: #3C3489;
+      opacity: 1;
+    }
+
+    .subject-badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: #EEEDFE;
+      color: #534AB7;
+      font-weight: 500;
+      margin-left: auto;
+    }
+
+    .mastery-bar-wrap {
+      margin-top: 4px;
+    }
+
+    .mastery-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .mastery-bar {
+      height: 4px;
+      background: var(--color-background-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .mastery-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: #534AB7;
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .step.done .step-num {
+      background: #534AB7;
+      color: #fff;
+    }
+
+    .step.active .step-num {
+      background: var(--color-background-primary);
+      border: 2px solid #534AB7;
+      color: #534AB7;
+    }
+
+    .step.pending .step-num {
+      background: var(--color-background-secondary);
+      color: var(--color-text-tertiary);
+    }
+
+    .step.done .step-label {
+      color: var(--color-text-secondary);
+    }
+
+    .step.active .step-label {
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .step.pending .step-label {
+      color: var(--color-text-tertiary);
+    }
+
+    .step-line {
+      flex: 1;
+      height: 1px;
+      background: var(--color-border-tertiary);
+      margin: 0 10px;
+    }
+
+    .step-line.done {
+      background: #534AB7;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+    }
+
+    /* Subject + Question select */
+    .select-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .select-group label {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+
+    select,
+    textarea {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 8px 12px;
+      outline: none;
+      width: 100%;
+    }
+
+    select:focus,
+    textarea:focus {
+      border-color: #534AB7;
+      box-shadow: 0 0 0 2px rgba(83, 74, 183, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    /* Question card */
+    .question-card {
+      background: #EEEDFE;
+      border: 0.5px solid #AFA9EC;
+      border-radius: var(--border-radius-lg);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .question-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .q-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .q-tag.blue {
+      background: #B5D4F4;
+      color: #0C447C;
+    }
+
+    .q-tag.purple {
+      background: #CECBF6;
+      color: #3C3489;
+    }
+
+    .q-tag.amber {
+      background: #FAC775;
+      color: #633806;
+    }
+
+    .question-text {
+      font-size: 14px;
+      color: #3C3489;
+      line-height: 1.6;
+    }
+
+    /* Rubric preview */
+    .rubric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+    }
+
+    .rubric-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--color-background-secondary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .rubric-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .rubric-weight {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+      font-weight: 500;
+    }
+
+    /* Textarea area */
+    .char-count {
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+      text-align: right;
+      margin-top: 6px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .btn-secondary {
+      font-size: 13px;
+      padding: 8px 18px;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      background: transparent;
+      border: 0.5px solid var(--color-border-secondary);
+      color: var(--color-text-secondary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-background-secondary);
+    }
+
+    .btn-primary {
+      font-size: 13px;
+      padding: 8px 22px;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      background: #534AB7;
+      border: none;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: #3C3489;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    /* Results */
+    .results-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .score-ring-wrap {
+      flex-shrink: 0;
+    }
+
+    .score-meta {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .score-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .score-sub {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .score-badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .score-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .badge-success {
+      background: #C0DD97;
+      color: #27500A;
+    }
+
+    .badge-warning {
+      background: #FAC775;
+      color: #633806;
+    }
+
+    .badge-danger {
+      background: #F7C1C1;
+      color: #791F1F;
+    }
+
+    .badge-info {
+      background: #B5D4F4;
+      color: #0C447C;
+    }
+
+    /* Concept table */
+    .concept-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .concept-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      border: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .concept-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--border-radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .concept-name {
+      font-size: 13px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .concept-desc {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .concept-score-pill {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .pill-full {
+      background: #C0DD97;
+      color: #27500A;
+    }
+
+    .pill-partial {
+      background: #FAC775;
+      color: #633806;
+    }
+
+    .pill-missed {
+      background: #F7C1C1;
+      color: #791F1F;
+    }
+
+    .concept-bar-wrap {
+      width: 80px;
+      height: 5px;
+      background: var(--color-border-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .concept-bar {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    /* Feedback areas */
+    .feedback-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .feedback-cols {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feedback-box {
+      border-radius: var(--border-radius-md);
+      padding: 14px 16px;
+      border-left: 3px solid;
+    }
+
+    .feedback-box.strong {
+      background: #EAF3DE;
+      border-color: #639922;
+    }
+
+    .feedback-box.weak {
+      background: #FAECE7;
+      border-color: #D85A30;
+    }
+
+    .feedback-box-label {
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .feedback-box.strong .feedback-box-label {
+      color: #3B6D11;
+    }
+
+    .feedback-box.weak .feedback-box-label {
+      color: #993C1D;
+    }
+
+    .feedback-item {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--color-text-primary);
+      padding: 4px 0;
+      display: flex;
+      gap: 7px;
+    }
+
+    .feedback-bullet {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Mastery */
+    .mastery-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .mastery-card {
+      background: var(--color-background-secondary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      padding: 12px;
+    }
+
+    .mastery-card-label {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .mastery-card-val {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .mastery-card-bar {
+      height: 4px;
+      background: var(--color-border-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .mastery-card-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    /* Recommendation */
+    .rec-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .rec-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      align-items: flex-start;
+      border: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .rec-icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--border-radius-md);
+      background: #EEEDFE;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .rec-text {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .rec-text strong {
+      font-weight: 500;
+    }
+
+    /* Loading */
+    .loading-overlay {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 0;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 2.5px solid var(--color-border-tertiary);
+      border-top-color: #534AB7;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-label {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+    }
+
+    .loading-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .loading-step {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .loading-step.done {
+      color: #639922;
+    }
+
+    .loading-step.active {
+      color: var(--color-text-secondary);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      background: var(--color-background-secondary);
+      padding: 4px;
+      border-radius: var(--border-radius-md);
+      width: fit-content;
+    }
+
+    .tab {
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--color-text-secondary);
+    }
+
+    .tab.active {
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      font-weight: 500;
+      box-shadow: 0 0.5px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-divider {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+      padding-bottom: 8px;
+    }
+
+    .overall-narrative {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--color-text-secondary);
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 14px 16px;
+      border-left: 3px solid #534AB7;
+    }
+
+    .inline-score {
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .score-ring-svg text {
+      font-family: var(--font-sans);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Responsive sidebar hide */
+    @media (max-width: 680px) {
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-brand">
+        <div class="topbar-logo">IP</div>
+        <span class="topbar-name">IntelliPlace</span>
+        <span class="topbar-tag">Evaluation Engine</span>
+      </div>
+      <div class="topbar-nav">
+        <button class="nav-btn active">Evaluate</button>
+        <button class="nav-btn" onclick="alert('Progress tracking is currently shown in the sidebar.')">Progress</button>
+        <button class="nav-btn" onclick="alert('Select a subject from the sidebar to view the question bank.')">Question Bank</button>
+      </div>
+      <div class="topbar-user" title="Student">AK</div>
+    </div>
+
+    <div class="main">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div>
+          <div class="sidebar-section-label">Subjects</div>
+          <div id="sidebar-subjects">
+            <button class="sidebar-item" style="opacity:0.5;"><span class="sidebar-dot"></span>Loading...</button>
+          </div>
+        </div>
+        <div>
+          <div class="sidebar-section-label">Session</div>
+          <div style="font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; padding: 0 4px;">
+            <div style="margin-bottom: 8px;">Questions attempted: <span
+                id="stat-attempted" style="font-weight:500; color: var(--color-text-primary);">0</span></div>
+            <div style="margin-bottom: 8px;">Avg score: <span
+                id="stat-avg-score" style="font-weight:500; color: var(--color-text-primary);">—</span></div>
+            <div>Mastery level: <span id="stat-mastery-level" style="font-weight:500; color: #534AB7;">Beginner</span></div>
+          </div>
+          <div class="mastery-bar-wrap" style="margin-top:12px;">
+            <div class="mastery-label"><span>Overall Mastery</span><span id="stat-mastery-pct">0%</span></div>
+            <div class="mastery-bar">
+              <div class="mastery-fill" id="stat-mastery-fill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: auto;">
+          <div style="font-size: 11px; color: var(--color-text-tertiary); padding: 4px; line-height: 1.5;">
+            Placement prep platform — master OS, DBMS, CN, and DS.
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="content" id="app-content">
+
+        <!-- Step Indicator -->
+        <div class="steps" id="step-indicator">
+          <div class="step done" id="step1">
+            <div class="step-num">✓</div>
+            <span class="step-label">Select question</span>
+          </div>
+          <div class="step-line done" id="line1"></div>
+          <div class="step active" id="step2">
+            <div class="step-num">2</div>
+            <span class="step-label">Write answer</span>
+          </div>
+          <div class="step-line" id="line2"></div>
+          <div class="step pending" id="step3">
+            <div class="step-num">3</div>
+            <span class="step-label">View evaluation</span>
+          </div>
+        </div>
+
+        <!-- View: Input -->
+        <div id="view-input">
+
+          <!-- Subject + Question -->
+          <div class="card">
+            <div class="card-title">Question setup</div>
+            <div class="select-row">
+              <div class="select-group">
+                <label>Subject</label>
+                <select id="subject-select" onchange="filterBySubject()">
+                  <option value="">Loading...</option>
+                </select>
+              </div>
+              <div class="select-group">
+                <label>Question</label>
+                <select id="topic-select" onchange="updateQuestion()">
+                  <option value="">Loading...</option>
+                </select>
+              </div>
+              <div class="select-group">
+                <label>Scoring mode</label>
+                <select id="diff-select" onchange="updateQuestion()">
+                  <option value="engine">Engine only</option>
+                  <option value="meta">Engine + Meta-model</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Question display -->
+            <div class="question-card" id="question-display">
+              <div class="question-meta">
+                <span class="q-tag blue" id="subject-tag">—</span>
+                <span class="q-tag purple" id="topic-tag">—</span>
+                <span class="q-tag amber" id="diff-tag">Engine</span>
+              </div>
+              <div class="question-text" id="question-text">
+                Explain the concept of CPU scheduling in operating systems. Discuss at least three scheduling algorithms
+                (FCFS, SJF, and Round Robin), their working principles, advantages, disadvantages, and when each is
+                preferred. Also explain what a scheduling criterion is and how context switching overhead is involved.
+              </div>
+            </div>
+
+            <!-- Rubric preview -->
+            <div style="margin-top: 4px;">
+              <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; font-weight: 500;">
+                Evaluation rubric — key concepts (hidden from student)</div>
+              <div class="rubric-grid" id="rubric-grid">
+                <!-- filled by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Answer input -->
+          <div class="card">
+            <div class="card-title">Your answer</div>
+            <div class="card-subtitle">Write a detailed, exam-style answer. Aim for completeness and clarity.</div>
+            <textarea id="answer-input" rows="12" placeholder="Start writing your answer here..."
+              oninput="updateCharCount()"></textarea>
+            <div class="char-count"><span id="char-count">0</span> characters · <span id="word-count">0</span> words
+            </div>
+            <div class="btn-row">
+              <button class="btn-secondary" onclick="fillSampleAnswer()">Fill sample answer</button>
+              <button class="btn-primary" onclick="submitAnswer()">Submit for evaluation →</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- View: Loading -->
+        <div id="view-loading" class="hidden">
+          <div class="card loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-label" id="loading-label">Analyzing your answer...</div>
+            <div class="loading-steps" id="loading-steps">
+              <div class="loading-step active" id="ls1">Parsing answer structure</div>
+              <div class="loading-step" id="ls2">Matching concepts against rubric</div>
+              <div class="loading-step" id="ls3">Assessing explanation quality</div>
+              <div class="loading-step" id="ls4">Computing concept scores</div>
+              <div class="loading-step" id="ls5">Generating feedback &amp; mastery</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Results -->
+        <div id="view-results" class="hidden">
+
+          <!-- Score header -->
+          <div class="card results-header">
+            <div class="score-ring-wrap">
+              <svg id="score-ring" width="90" height="90" viewBox="0 0 90 90" role="img" aria-label="Score ring">
+                <circle cx="45" cy="45" r="36" fill="none" stroke="#EEEDFE" stroke-width="7" />
+                <circle id="score-arc" cx="45" cy="45" r="36" fill="none" stroke="#534AB7" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226" transform="rotate(-90 45 45)"
+                  style="transition: stroke-dashoffset 1s ease;" />
+                <text x="45" y="49" text-anchor="middle" font-size="20" font-weight="500" fill="#534AB7"
+                  id="score-text">0</text>
+              </svg>
+            </div>
+            <div class="score-meta">
+              <div class="score-title" id="result-verdict">—</div>
+              <div class="score-sub" id="result-summary">—</div>
+              <div class="score-badges" id="result-badges"></div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab active" onclick="showTab('concepts', this)">Concept breakdown</button>
+            <button class="tab" onclick="showTab('feedback', this)">Feedback</button>
+            <button class="tab" onclick="showTab('mastery', this)">Mastery</button>
+          </div>
+
+          <!-- Tab: Concepts -->
+          <div id="tab-concepts">
+            <div class="card">
+              <div class="section-divider">Overall narrative</div>
+              <div class="overall-narrative" id="overall-narrative">—</div>
+            </div>
+            <div class="card">
+              <div class="section-divider">Concept-wise evaluation</div>
+              <div class="concept-list" id="concept-list"></div>
+            </div>
+          </div>
+
+          <!-- Tab: Feedback -->
+          <div id="tab-feedback" class="hidden">
+            <div class="card">
+              <div class="section-divider">Strong areas vs weak areas</div>
+              <div class="feedback-cols" id="feedback-cols"></div>
+            </div>
+            <div class="card" style="margin-top:16px;">
+              <div class="section-divider">Examiner's remarks</div>
+              <div class="overall-narrative" id="examiner-remarks">—</div>
+            </div>
+            <div class="card" style="margin-top:16px;">
+              <div class="section-divider">Recommended next steps</div>
+              <div class="rec-list" id="rec-list"></div>
+            </div>
+          </div>
+
+          <!-- Tab: Mastery -->
+          <div id="tab-mastery" class="hidden">
+            <div class="card">
+              <div class="section-divider">Current concept mastery</div>
+              <div class="mastery-section" id="mastery-section"></div>
+            </div>
+            <div class="card" style="margin-top:16px;">
+              <div class="section-divider">Score distribution (this session)</div>
+              <div style="position:relative;height:180px;">
+                <canvas id="dist-chart" role="img" aria-label="Score distribution chart">Score: 7.2 out of 10.</canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action row -->
+          <div class="btn-row" style="margin-top: 8px;">
+            <button class="btn-secondary" onclick="resetApp()">Try another question</button>
+            <button class="btn-primary"
+              onclick="nextQuestion()">Next question ↗</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script>
+    const COLORS = ['#534AB7', '#3B6D11', '#185FA5', '#D85A30', '#BA7517', '#A32D2D', '#993556', '#5DCAA5'];
+    const SUBJECT_COLORS = { 'Computer Networks': '#185FA5', 'Database Management Systems': '#BA7517', 'Data Structures': '#3B6D11', 'Operating Systems': '#534AB7' };
+    let QUESTIONS = [];
+    let META_MODEL_LOADED = false;
+    let CURRENT_SUBJECT = '';
+    
+    // Session state
+    let sessionState = {
+      attempted: 0,
+      totalScore: 0,
+      conceptScores: []
+    };
+
+    function getSelectedQuestionId() {
+      return document.getElementById('topic-select').value;
+    }
+
+    function currentQuestion() {
+      return QUESTIONS.find(q => q.question_id === getSelectedQuestionId()) || filteredQuestions()[0];
+    }
+
+    function filteredQuestions() {
+      if (!CURRENT_SUBJECT) return QUESTIONS;
+      return QUESTIONS.filter(q => q.subject === CURRENT_SUBJECT);
+    }
+
+    function getUniqueSubjects() {
+      return [...new Set(QUESTIONS.map(q => q.subject))].sort();
+    }
+
+    async function loadQuestions() {
+      const res = await fetch('/api/questions');
+      if (!res.ok) {
+        throw new Error('Failed to load questions from local server.');
+      }
+      const data = await res.json();
+      QUESTIONS = data.questions || [];
+      META_MODEL_LOADED = !!data.meta_model_loaded;
+
+      // Populate subject dropdown
+      const subjects = getUniqueSubjects();
+      const subjectSelect = document.getElementById('subject-select');
+      subjectSelect.innerHTML = `<option value="">All Subjects (${QUESTIONS.length})</option>` +
+        subjects.map(s => `<option value="${s}">${s} (${QUESTIONS.filter(q => q.subject === s).length})</option>`).join('');
+
+      // Populate sidebar
+      const sidebarDiv = document.getElementById('sidebar-subjects');
+      sidebarDiv.innerHTML = `<button class="sidebar-item active" onclick="selectSubject('',this)"><span class="sidebar-dot"></span>All Subjects<span class="subject-badge">${QUESTIONS.length}</span></button>` +
+        subjects.map(s => {
+          const count = QUESTIONS.filter(q => q.subject === s).length;
+          return `<button class="sidebar-item" onclick="selectSubject('${s}',this)"><span class="sidebar-dot"></span>${s}<span class="subject-badge">${count}</span></button>`;
+        }).join('');
+
+      // Scoring mode
+      const diff = document.getElementById('diff-select');
+      if (diff) {
+        diff.innerHTML = `
+          <option value="engine">Engine only</option>
+          ${META_MODEL_LOADED ? '<option value="meta">Engine + Meta-model</option>' : ''}
+        `;
+        diff.disabled = false;
+      }
+
+      filterBySubject();
+    }
+
+    function selectSubject(subject, btn) {
+      document.querySelectorAll('#sidebar-subjects .sidebar-item').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const subjectSelect = document.getElementById('subject-select');
+      subjectSelect.value = subject;
+      filterBySubject();
+    }
+
+    function filterBySubject() {
+      CURRENT_SUBJECT = document.getElementById('subject-select').value;
+      const filtered = filteredQuestions();
+      const select = document.getElementById('topic-select');
+      select.innerHTML = filtered.map(q =>
+        `<option value="${q.question_id}">${q.question_id} — ${q.question.slice(0, 65)}...</option>`
+      ).join('');
+
+      // Sync sidebar active state
+      document.querySelectorAll('#sidebar-subjects .sidebar-item').forEach(btn => {
+        const btnSubject = btn.textContent.replace(/\d+/g, '').trim();
+        if ((!CURRENT_SUBJECT && btnSubject === 'All Subjects') || btnSubject === CURRENT_SUBJECT) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      updateQuestion();
+    }
+
+    function updateQuestion() {
+      const q = currentQuestion();
+      if (!q) return;
+      document.getElementById('question-text').textContent = q.question;
+      document.getElementById('subject-tag').textContent = q.subject;
+      document.getElementById('topic-tag').textContent = q.question_id;
+      
+      const modeSelect = document.getElementById('diff-select');
+      let modeText = 'Engine only';
+      if (modeSelect && modeSelect.options[modeSelect.selectedIndex]) {
+        modeText = modeSelect.options[modeSelect.selectedIndex].text;
+      }
+      document.getElementById('diff-tag').textContent = modeText;
+      updateRubric();
+    }
+
+    function updateRubric() {
+      const q = currentQuestion();
+      const grid = document.getElementById('rubric-grid');
+      if (!q || !grid) return;
+      grid.innerHTML = q.rubric.map((r, idx) => `
+    <div class="rubric-pill">
+      <span class="rubric-pill-dot" style="background:${COLORS[idx % COLORS.length]}"></span>
+      <span>${r.name}</span>
+      <span class="rubric-weight">${r.weight}</span>
+    </div>`).join('');
+    }
+
+    function updateCharCount() {
+      const val = document.getElementById('answer-input').value;
+      document.getElementById('char-count').textContent = val.length;
+      document.getElementById('word-count').textContent = val.trim() ? val.trim().split(/\s+/).length : 0;
+    }
+
+    function fillSampleAnswer() {
+      const q = currentQuestion();
+      document.getElementById('answer-input').value = q?.sample_answer || '';
+      updateCharCount();
+    }
+
+    function runLoadingSequence(done) {
+      const steps = ['ls1', 'ls2', 'ls3', 'ls4', 'ls5'];
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i > 0) document.getElementById(steps[i - 1]).classList.replace('active', 'done');
+        if (i < steps.length) {
+          document.getElementById(steps[i]).classList.add('active');
+        }
+        i++;
+        if (i > steps.length) {
+          clearInterval(interval);
+          done();
+        }
+      }, 350);
+    }
+
+    async function submitAnswer() {
+      const ans = document.getElementById('answer-input').value.trim();
+      if (!ans || ans.length < 40) { alert('Please write a more complete answer before submitting.'); return; }
+
+      document.getElementById('view-input').classList.add('hidden');
+      document.getElementById('view-results').classList.add('hidden');
+      document.getElementById('view-loading').classList.remove('hidden');
+      setStep(3, 'active');
+
+      try {
+        const res = await fetch('/api/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            question_id: getSelectedQuestionId(), 
+            answer: ans,
+            mode: document.getElementById('diff-select').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Evaluation failed.');
+        runLoadingSequence(() => showResults(data));
+      } catch (err) {
+        document.getElementById('view-loading').classList.add('hidden');
+        document.getElementById('view-input').classList.remove('hidden');
+        alert(err.message || 'Failed to evaluate answer.');
+        setStep(2, 'active');
+      }
+    }
+
+    function showResults(data) {
+      document.getElementById('view-loading').classList.add('hidden');
+      document.getElementById('view-results').classList.remove('hidden');
+      setStep(3, 'done');
+
+      const score = Number(data.final_score || 0);
+      
+      // Update session stats
+      sessionState.attempted += 1;
+      sessionState.totalScore += score;
+      
+      if (data.concepts) {
+        data.concepts.forEach(c => sessionState.conceptScores.push(c.score));
+      }
+      
+      document.getElementById('stat-attempted').textContent = sessionState.attempted;
+      const avg = sessionState.totalScore / sessionState.attempted;
+      document.getElementById('stat-avg-score').textContent = avg.toFixed(1) + '/10';
+      
+      let overallMastery = 0;
+      if (sessionState.conceptScores.length > 0) {
+        overallMastery = sessionState.conceptScores.reduce((a,b) => a+b, 0) / sessionState.conceptScores.length;
+      }
+      document.getElementById('stat-mastery-pct').textContent = Math.round(overallMastery) + '%';
+      document.getElementById('stat-mastery-fill').style.width = overallMastery + '%';
+      
+      let level = "Beginner";
+      if (overallMastery >= 80) level = "Expert";
+      else if (overallMastery >= 60) level = "Intermediate";
+      document.getElementById('stat-mastery-level').textContent = level;
+      
+      const arc = document.getElementById('score-arc');
+      const circumference = 226;
+      const offset = circumference - (score / 10) * circumference;
+      arc.setAttribute('stroke-dashoffset', offset);
+      const color = score >= 8 ? '#639922' : score >= 6 ? '#534AB7' : '#D85A30';
+      arc.setAttribute('stroke', color);
+      document.getElementById('score-text').textContent = score.toFixed(1);
+      document.getElementById('score-text').setAttribute('fill', color);
+
+      document.getElementById('result-verdict').textContent = data.verdict;
+      document.getElementById('result-summary').textContent = data.summary;
+
+      const badgesEl = document.getElementById('result-badges');
+      badgesEl.innerHTML = (data.badges || []).map(b =>
+        `<span class="score-badge badge-${b.type}">${b.label}</span>`
+      ).join('');
+
+      document.getElementById('overall-narrative').textContent = data.overall_narrative;
+
+      const cl = document.getElementById('concept-list');
+      cl.innerHTML = (data.concepts || []).map(c => {
+        const barColor = c.score >= 80 ? '#639922' : c.score >= 60 ? '#534AB7' : '#D85A30';
+        const pillClass = c.status === 'full' ? 'pill-full' : c.status === 'partial' ? 'pill-partial' : 'pill-missed';
+        const pillLabel = c.status === 'full' ? 'Covered' : c.status === 'partial' ? 'Partial' : 'Missed';
+        const iconBg = c.score >= 80 ? '#C0DD97' : c.score >= 60 ? '#EEEDFE' : '#F7C1C1';
+        const iconChar = c.score >= 80 ? '✓' : c.score >= 60 ? '~' : '✗';
+        return `<div class="concept-row">
+      <div class="concept-icon" style="background:${iconBg}">${iconChar}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="concept-name">${c.name} <span style="font-size:10px;font-weight:400;color:var(--color-text-tertiary)">${c.weight}</span></div>
+        <div class="concept-desc">${c.desc}</div>
+      </div>
+      <div class="concept-bar-wrap"><div class="concept-bar" style="width:${c.score}%;background:${barColor}"></div></div>
+      <span class="concept-score-pill ${pillClass}">${pillLabel} · ${c.score}%</span>
+    </div>`;
+      }).join('');
+
+      const fc = document.getElementById('feedback-cols');
+      fc.innerHTML = `
+    <div class="feedback-box strong">
+      <div class="feedback-box-label">Strong areas</div>
+      ${(data.strong || []).map(s => `<div class="feedback-item"><span class="feedback-bullet" style="color:#639922;">+</span>${s}</div>`).join('')}
+    </div>
+    <div class="feedback-box weak">
+      <div class="feedback-box-label">Areas to improve</div>
+      ${(data.weak || []).map(w => `<div class="feedback-item"><span class="feedback-bullet" style="color:#D85A30;">−</span>${w}</div>`).join('')}
+    </div>`;
+
+      document.getElementById('examiner-remarks').textContent = data.remarks || '';
+
+      const rl = document.getElementById('rec-list');
+      rl.innerHTML = (data.recommendations || []).map(r =>
+        `<div class="rec-item"><div class="rec-icon">${r.icon}</div><div class="rec-text">${r.text}</div></div>`
+      ).join('');
+
+      const ms = document.getElementById('mastery-section');
+      ms.innerHTML = (data.mastery || []).map(m => `
+    <div class="mastery-card">
+      <div class="mastery-card-label">${m.label}</div>
+      <div class="mastery-card-val" style="color:${m.color}">${m.val}%</div>
+      <div class="mastery-card-bar"><div class="mastery-card-fill" style="width:${m.val}%;background:${m.color}"></div></div>
+    </div>`).join('');
+
+      renderDistChart(score, data.distribution || [0, 0, 0, 0, 0]);
+    }
+
+    function renderDistChart(score, distribution) {
+      if (window._distChart) { window._distChart.destroy(); }
+      window._distChart = new Chart(document.getElementById('dist-chart'), {
+        type: 'bar',
+        data: {
+          labels: ['0–2', '2–4', '4–6', '6–8', '8–10'],
+          datasets: [{
+            label: 'Students',
+            data: distribution,
+            backgroundColor: ['#F7C1C1', '#FAC775', '#B5D4F4', '#97C459', '#5DCAA5'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => `${ctx.parsed.y} students` } },
+            annotation: {}
+          },
+          scales: {
+            x: { ticks: { font: { size: 12 } }, grid: { display: false } },
+            y: { ticks: { font: { size: 12 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+          }
+        }
+      });
+    }
+
+    function showTab(name, btn) {
+      ['concepts', 'feedback', 'mastery'].forEach(t => {
+        document.getElementById('tab-' + t).classList.add('hidden');
+      });
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.remove('hidden');
+      btn.classList.add('active');
+    }
+
+    function setStep(active, state) {
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById('step' + i);
+        el.classList.remove('done', 'active', 'pending');
+        if (i < active) el.classList.add('done');
+        else if (i === active) el.classList.add(state);
+        else el.classList.add('pending');
+        if (i < 3) {
+          const line = document.getElementById('line' + i);
+          line.classList.toggle('done', i < active);
+        }
+      }
+    }
+
+    function resetApp() {
+      document.getElementById('view-results').classList.add('hidden');
+      document.getElementById('view-input').classList.remove('hidden');
+      document.getElementById('answer-input').value = '';
+      updateCharCount();
+      setStep(1, 'done');
+      document.getElementById('step2').classList.remove('pending');
+      document.getElementById('step2').classList.add('active');
+      document.getElementById('line2').classList.remove('done');
+      ['ls1', 'ls2', 'ls3', 'ls4', 'ls5'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('done', 'active');
+      });
+      showTab('concepts', document.querySelector('.tab'));
+    }
+
+    function nextQuestion() {
+      const select = document.getElementById('topic-select');
+      if (select.selectedIndex < select.options.length - 1) {
+        select.selectedIndex += 1;
+      } else {
+        select.selectedIndex = 0; // wrap around
+      }
+      updateQuestion();
+      resetApp();
+    }
+
+    document.querySelector('.sidebar-section-label').textContent = 'Question Bank';
+
+    loadQuestions().catch(err => {
+      alert('Failed to load live questions. Make sure app.py is running locally.\n\n' + err.message);
+    });
+  </script>
+</body>
+
+</html>
